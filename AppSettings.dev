@@ -1,0 +1,6 @@
+    APP_NAME=WebHookAPIDev
+    PORT=9090
+    DEBUGMODE=True
+    DEVELOP=True
+    ROBOTHOOKURL="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=<k1>"
+    SQL_URL="sqlite:///app/storage.db"

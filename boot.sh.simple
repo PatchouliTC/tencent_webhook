@@ -1,0 +1,9 @@
+cd $(dirname $0)
+for id in `ps -ef|grep "python setup.py run -c AppSettings.pro" | grep -v "grep" |awk '{print $2}'`
+do
+kill -9 $id
+echo "success kill $id [old server instance]"
+done
+
+
+nohup python setup.py run -c AppSettings.pro  >/dev/null 2>&1 &
