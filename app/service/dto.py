@@ -96,7 +96,28 @@ def add_pushrecord_with_commits(data:dict,submitter:Submitter,branch:Branch):
     raise ValueError("target push already exists")
     
 
-            
+def get_stats_info(submitters:Submitter,date):
+    stats=[]
+    for sub in submitters:
+        _stat=db.session.query(Repository.name.label("reponame"),
+            func.sum(PushRecord.additions).label("additions"),
+            func.sum(PushRecord.deletions).label("deletions"),
+            func.count(PushRecord.id).label("subcount")).select_from(Repository).join(
+                Repository.branches
+            ).join(
+                Branch.pushes
+            ).join(
+                Submitter,PushRecord.sub_id==Submitter.id
+            ).filter(
+                Submitter.identityid==sub.identityid,
+                func.date(PushRecord.push_at) == date
+            ).group_by(Repository.id)
+
+        _statformat=[]
+        for i in _stat:
+            _statformat.append({ c: getattr(i, c) for c in i._fields })
+        stats.append({'submitter':sub.name,'detail':_statformat})
+    return stats
     
 
 

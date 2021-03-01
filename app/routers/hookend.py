@@ -1,3 +1,4 @@
+from logging import info
 import re
 
 from typing import Dict,Any, Union
@@ -63,7 +64,9 @@ async def webhook_data_receive(request:Request,payload:Union[PushData,MergeData]
     if payload.object_kind==HookKind.Push:
         _pushrecord=dto.add_pushrecord_with_commits(payload.dict(),_submitter,_branch)
 
-        diffdata=txgitcall.get_diff_info_reqest(_repoid,_pushrecord.before_hash,_pushrecord.current_hash,_localrepo.accesstoken)
+        accesstoken=_localrepo.accesstoken if not ConfigData.APP_CONFIG.DEVELOP else ConfigData.APP_CONFIG.ACCESSTOKEN
+
+        diffdata,info=txgitcall.get_diff_info_reqest(_repoid,_pushrecord.before_hash,_pushrecord.current_hash,accesstoken)
         if diffdata:
             additions=0
             deletions=0
@@ -78,9 +81,10 @@ async def webhook_data_receive(request:Request,payload:Union[PushData,MergeData]
 
     #Add Merge Data
     elif payload.object_kind==HookKind.Merge:
+
         pass
 
-    return respUtil.resp_404(payload="No such repo record")
+    return respUtil.resp_200(payload="Finish")
 
 
 

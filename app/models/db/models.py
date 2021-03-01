@@ -92,8 +92,8 @@ class PushRecord(Base):
     #前一次提交的hash
     before_hash=Column(String(64))
 
-    additions=Column(BigInteger,default=-1)
-    deletions=Column(BigInteger,default=-1)
+    additions=Column(BigInteger,default=0)
+    deletions=Column(BigInteger,default=0)
 
 
     push_at=Column(DateTime,nullable=False,default=datetime.datetime.now(),index=True)

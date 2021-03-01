@@ -10,8 +10,17 @@ class AppSettings(BaseSettings):
     ROBOTHOOKURL:str=None
     SQL_URL:str=None
     GITSECRETKEY:str=None
+    
     #FOR DEVELOP
     IDENTITYPWD:str=123456
+    ACCESSTOKEN:str=None
+    SENDTIME:str=None
+    TEMPLATESTR:str="""
+-----PUSH STAT( %s )-----
+```
+%s
+```"""
+
 
     #auto add unknown repo?
     AUTOADDUNKNOWNREPO:bool=False
