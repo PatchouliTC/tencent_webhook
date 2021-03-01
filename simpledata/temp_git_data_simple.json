@@ -235,5 +235,112 @@
         "extension_action": "merge"
       }
     }
+  ],
+  "diffsimple": {
+    "commit": {
+      "id": "af704377561fccd760bd760dbe6cf3791de0719f",
+      "short_id": "af704377",
+      "title": "edit 2files",
+      "author_name": "PatchouliTC",
+      "author_email": "1009609373@qq.com",
+      "created_at": "2021-03-01T10:04:23+0000",
+      "message": "edit 2files\n",
+      "scroll_object_id": null
+    },
+    "commits": [
+      {
+        "id": "af704377561fccd760bd760dbe6cf3791de0719f",
+        "short_id": "af704377",
+        "title": "edit 2files",
+        "author_name": "PatchouliTC",
+        "author_email": "1009609373@qq.com",
+        "created_at": "2021-03-01T10:04:23+0000",
+        "message": "edit 2files\n",
+        "scroll_object_id": null
+      }
+    ],
+    "diffs": [
+      {
+        "old_path": "temp_git_data_simple.json",
+        "new_path": "temp_git_data_simple.json",
+        "a_mode": 33188,
+        "b_mode": 33188,
+        "diff": "@@ -1,240 +1,240 @@\n {\n-...",
+        "new_file": false,
+        "renamed_file": false,
+        "deleted_file": false,
+        "is_too_large": false,
+        "is_collapse": false,
+        "additions": 236,
+        "deletions": 236
+      },
+      {
+        "old_path": "README.md",
+        "new_path": "README.md",
+        "a_mode": 33188,
+        "b_mode": 33188,
+        "diff": "@@ -10,4 +10,6 @@\n \n - test5: add 2 new lines\n \n-- test6: test visable param\n\\ No newline at end of file\n+- test6: test visable param\n+\n+- test7: edit mult file\n\\ No newline at end of file\n",
+        "new_file": false,
+        "renamed_file": false,
+        "deleted_file": false,
+        "is_too_large": false,
+        "is_collapse": false,
+        "additions": 3,
+        "deletions": 1
+      }
+    ],
+    "compare_timeout": false,
+    "compare_same_ref": false,
+    "over_flow": false,
+    "files_total": 2,
+    "commits_total": 1
+  },
+  "branchessimple": [
+    {
+      "protected": false,
+      "developers_can_push": false,
+      "developers_can_merge": false,
+      "name": "master",
+      "commit": {
+        "id": "af704377561fccd760bd760dbe6cf3791de0719f",
+        "message": "edit 2files\n",
+        "parent_ids": [
+          "b07404586bb4e320ad96f7a9b17670f181776fb5"
+        ],
+        "authored_date": "2021-03-01T10:04:23+0000",
+        "author_name": "PatchouliTC",
+        "author_email": "1009609373@qq.com",
+        "committed_date": "2021-03-01T10:04:23+0000",
+        "committer_name": "PatchouliTC",
+        "committer_email": "1009609373@qq.com",
+        "title": "edit 2files",
+        "scroll_object_id": null,
+        "created_at": "2021-03-01T10:04:23+0000",
+        "short_id": "af704377"
+      }
+    },
+    {
+      "protected": false,
+      "developers_can_push": false,
+      "developers_can_merge": false,
+      "name": "test",
+      "commit": {
+        "id": "cfd6de75fb916bfd2f509f02ba3bfbcf152c0483",
+        "message": "modify\n",
+        "parent_ids": [
+          "999031d2f633ec4acfea635297c78ad732d2290b"
+        ],
+        "authored_date": "2021-02-26T02:55:13+0000",
+        "author_name": "PatchouliTC",
+        "author_email": "1009609373@qq.com",
+        "committed_date": "2021-02-26T02:55:13+0000",
+        "committer_name": "PatchouliTC",
+        "committer_email": "1009609373@qq.com",
+        "title": "modify",
+        "scroll_object_id": null,
+        "created_at": "2021-02-26T02:55:13+0000",
+        "short_id": "cfd6de75"
+      }
+    }
   ]
 }

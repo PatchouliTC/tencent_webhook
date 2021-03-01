@@ -30,3 +30,13 @@ def resp_401(*,message='UnAuthourize',payload=None):
             'data':payload
         }
     )
+
+def resp_404(*,message='Not Found',payload=None):
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            'state':404,
+            'message':message,
+            'data':payload
+        }
+    )

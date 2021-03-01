@@ -13,7 +13,7 @@
                 "run",
                 "-n",
                 "-d",
-                "-c AppSettings.dev",
+                "-c AppSettings.dev.env",
                 "-p 5006"
             ]
         },
@@ -25,7 +25,7 @@
             "args": [
                 "run",
                 "-n",
-                "-c AppSettings.pro",
+                "-c AppSettings.pro.env",
             ]
         },
         {

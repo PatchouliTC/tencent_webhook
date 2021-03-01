@@ -2,7 +2,7 @@ import requests
 from utils import ConfigData
 from . import logger
 
-def send_msg_to_robot(msg,timeout:int=5):
+def send_msg_to_robot(url,msg,timeout:int=5):
     """发送消息给目标机器人
 
     Args:
@@ -15,7 +15,7 @@ def send_msg_to_robot(msg,timeout:int=5):
     if msg and ConfigData.APP_CONFIG.ROBOTHOOKURL:
         sendmsg={'msgtype': 'text', 'text': {'content': msg}}
         try:
-            req=requests.post(ConfigData.APP_CONFIG.ROBOTHOOKURL,json=sendmsg,timeout=timeout)
+            req=requests.post(url,json=sendmsg,timeout=timeout)
             logger.debug(f"state:{req.status_code},info:{req.reason},data:{req.text}")
             return True
         except Exception as e:

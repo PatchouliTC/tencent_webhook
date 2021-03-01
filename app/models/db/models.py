@@ -1,13 +1,14 @@
 from enum import unique
-from app.routers.endpoints import index
 import datetime
 from sqlalchemy import *
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TIMESTAMP
 
+from app.utils import verifyUtil
+
 from . import Base
 
-#repo
+
 class Repository(Base):
     __tablename__='repositories'
     id=Column(Integer,primary_key=True,index=True)
@@ -17,7 +18,7 @@ class Repository(Base):
     name=Column(String(256),default="UnKnownRepo",nullable=False)
     displayname=Column(String(256),default="UndefinedRepo")
 
-    visable_level=Column(Integer,default=0) #0=private 10=public
+    visibility_level=Column(Integer,default=0) #0=private 10=public
 
     namespace=Column(String(512),index=True)
     url=Column(String)
@@ -30,11 +31,16 @@ class Repository(Base):
 
     watcher=relationship('NoticeReceiver',secondary='repos_recvs')
     submitters=relationship('Submitter',secondary='repos_subs')
+    
+
+    def verify_accesstoken(self,token) -> bool:
+        if self.verifytoken and len(self.verifytoken)>0:
+            return verifyUtil.verify_hook_token(token,self.accesstoken)
+        return True
 
     def __repr__(self):
-        return f"Repo{self.name}({'Public' if self.visable_level > 0 else 'Private'})\n[{self.url}]"
+        return f"Repo:<{self.name}>({'Public' if self.visibility_level > 0 else 'Private'})\n[{self.url}]"
 
-#repo-branch
 class Branch(Base):
     __tablename__='branches'
     id=Column(Integer,primary_key=True,index=True)
@@ -48,7 +54,7 @@ class Branch(Base):
     merges=relationship("MergeRecord",backref="branch",cascade='all,delete-orphan')
 
     def __repr__(self):
-        return f"{'[%s]' % self.repo.name if self.repo else ''} - {self.name}"
+        return f"Branch:{'[%s]' % self.repo.name if self.repo else ''} - {self.name}"
 
 class Submitter(Base):
     __tablename__='submitters'
@@ -60,9 +66,10 @@ class Submitter(Base):
     name=Column(String(256),nullable=False,index=True)
 
     pushes=relationship("PushRecord",backref="submitter",cascade='all,delete-orphan')
-    merges=relationship("MergeRecord",backref="branch",cascade='all,delete-orphan')
+    merges=relationship("MergeRecord",backref="submitter",cascade='all,delete-orphan')
 
     associate_repos=relationship('Repository',secondary='repos_subs')
+
     def __repr__(self):
         return f"<{self.displayname}>[{self.name}]"
 
@@ -81,7 +88,7 @@ class PushRecord(Base):
     #branch
 
     #本次提交的hash
-    currnet_hash=Column(String(64),index=True)
+    current_hash=Column(String(64),index=True)
     #前一次提交的hash
     before_hash=Column(String(64))
 
@@ -116,9 +123,9 @@ class MergeRecord(Base):
     id=Column(Integer,primary_key=True,index=True)
 
     remoteid=Column(String(64),nullable=False,unique=True)
-
+    url=Column(String(512))
     snap_source_branch_name=Column(String(256))
-    snap_source_repo_namespace=Column(String(256),)
+    snap_source_repo_namespace=Column(String(256))
     snap_sub_name=Column(String(256),index=True)
 
     sub_id=Column(Integer,ForeignKey('submitters.id',ondelete='CASCADE'))

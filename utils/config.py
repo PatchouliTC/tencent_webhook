@@ -10,6 +10,11 @@ class AppSettings(BaseSettings):
     ROBOTHOOKURL:str=None
     SQL_URL:str=None
     GITSECRETKEY:str=None
+    #FOR DEVELOP
+    IDENTITYPWD:str=123456
+
+    #auto add unknown repo?
+    AUTOADDUNKNOWNREPO:bool=False
 
     LOG_ROOT:str=APP_NAME
     LOG_LEVEL:int=logging.DEBUG

@@ -2,6 +2,7 @@ import os
 
 from fastapi import FastAPI,Request,responses
 from fastapi_sqlalchemy import DBSessionMiddleware
+from fastapi_sqlalchemy import db
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 import uvicorn
@@ -9,7 +10,7 @@ import uvicorn
 from utils import ConfigData as CD, config
 from utils.logger import init_logging
 
-from app.utils import responsetemplate
+from app.utils import respUtil
 
 #记录server目录路径供未来使用
 SERVER_ROOT_PATH:str=os.path.abspath(os.path.dirname(__file__))
@@ -18,7 +19,7 @@ SERVER_ROOT_PATH:str=os.path.abspath(os.path.dirname(__file__))
 logger=init_logging(logname=__name__,level=CD.APP_CONFIG.LOG_LEVEL,filepath=os.path.join(CD.APP_CONFIG.LOG_FILE_ROOT_PATH,__name__,'log.log'))
 
 #生产环境注销API接口文档
-if not CD.APP_CONFIG.DEVELOP:
+if CD.APP_CONFIG.DEVELOP:
     app=FastAPI()
 else:
     app=FastAPI(docs_url=None,redoc_url=None)
@@ -43,21 +44,26 @@ def create_server():
 
     app.add_middleware(DBSessionMiddleware,db_url=CD.APP_CONFIG.SQL_URL)
     from .routers import endpoints
+    from .routers import hookend
 
     app.include_router(
         endpoints.router,
         responses={404: {'info':'Not Found'}}
     )
+    app.include_router(
+        hookend.router,
+        tags=['WebHookCallbacks'],
+        responses={404: {'info':'No such webhook endpoint'}}
+    )
     return app
 
 @app.on_event('startup')
 async def startup_event():
-    from fastapi_sqlalchemy import db
-    from .models.db.models import Repository
-    with db():
-        repos=db.session.query(Repository).all()
-        for r in repos:
-            print(r)
+    pass
+    # from .models.db.models import Repository
+    # repos=db.session.query(Repository).all()
+    # for r in repos:
+    #     print(r)
 
 
 def global_exception_handler(app:FastAPI)->None:
