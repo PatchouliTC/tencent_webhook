@@ -25,7 +25,6 @@ wheels/
 *.egg
 MANIFEST
 logs/
-env/
 migrations/versions
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -118,4 +117,5 @@ dmypy.json
 
 #others
 *.zip
+*.db
 .svn/

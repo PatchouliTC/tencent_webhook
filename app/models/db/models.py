@@ -1,3 +1,5 @@
+from enum import unique
+from app.routers.endpoints import index
 import datetime
 from sqlalchemy import *
 from sqlalchemy.orm import relationship
@@ -10,22 +12,31 @@ class Repository(Base):
     __tablename__='repositories'
     id=Column(Integer,primary_key=True,index=True)
 
-    name=Column(String(256),default="UnKnownRepo")
-    description=Column(String,default="")
-    visable_level=Column(Integer,default=10) #0=private 10=public
-    repoid=Column(Integer,nullable=False)
-    reponamespace=Column(String)
-    url=Column(String)
-    accesstoken=Column(String)
+    identityid=Column(Integer,nullable=False,unique=True)
 
-    branches=relationship("RepoBranch",backref="repo",cascade='all,delete-orphan')
-    
+    name=Column(String(256),default="UnKnownRepo",nullable=False)
+    displayname=Column(String(256),default="UndefinedRepo")
+
+    visable_level=Column(Integer,default=0) #0=private 10=public
+
+    namespace=Column(String(512),index=True)
+    url=Column(String)
+
+    accesstoken=Column(String)
+    verifytoken=Column(String)
+
+    branches=relationship("Branch",backref="repo",cascade='all,delete-orphan')
+    merges=relationship("MergeRecord",backref="repo",cascade='all,delete-orphan')
+
+    watcher=relationship('NoticeReceiver',secondary='repos_recvs')
+    submitters=relationship('Submitter',secondary='repos_subs')
+
     def __repr__(self):
         return f"Repo{self.name}({'Public' if self.visable_level > 0 else 'Private'})\n[{self.url}]"
 
 #repo-branch
-class RepoBranch(Base):
-    __tablename__='repobranches'
+class Branch(Base):
+    __tablename__='branches'
     id=Column(Integer,primary_key=True,index=True)
 
     repo_id=Column(Integer,ForeignKey('repositories.id',ondelete='CASCADE'))
@@ -33,68 +44,142 @@ class RepoBranch(Base):
 
     name=Column(String)
 
-    pushes=relationship("PushInfo",backref="branch",cascade='all,delete-orphan')
+    pushes=relationship("PushRecord",backref="branch",cascade='all,delete-orphan')
+    merges=relationship("MergeRecord",backref="branch",cascade='all,delete-orphan')
 
     def __repr__(self):
         return f"{'[%s]' % self.repo.name if self.repo else ''} - {self.name}"
 
-#hook user data save
-class Operator(Base):
-    __tablename__='operators'
+class Submitter(Base):
+    __tablename__='submitters'
     id=Column(Integer,primary_key=True,index=True)
-    userid=Column(Integer,nullable=False)#locate remote
-    name=Column(String,default="Unknown")
 
-    pushes=relationship("PushInfo",backref="operator",cascade='all,delete-orphan')
+    identityid=Column(Integer,nullable=False)#locate remote
 
+    displayname=Column(String(256),default="UnDefinedSubmitter")
+    name=Column(String(256),nullable=False,index=True)
 
+    pushes=relationship("PushRecord",backref="submitter",cascade='all,delete-orphan')
+    merges=relationship("MergeRecord",backref="branch",cascade='all,delete-orphan')
+
+    associate_repos=relationship('Repository',secondary='repos_subs')
     def __repr__(self):
-        return f"<{self.name}>"
+        return f"<{self.displayname}>[{self.name}]"
 
 
 
 #push info
-class PushInfo(Base):
-    __tablename__='pushinfos'
+class PushRecord(Base):
+    __tablename__='pushrecords'
     id=Column(Integer,primary_key=True,index=True)
     #操作人
-    op_id=Column(Integer,ForeignKey('operators.id',ondelete='CASCADE'))
-    #operator
+    sub_id=Column(Integer,ForeignKey('submitters.id',ondelete='CASCADE'))
+    #submitter
 
     #指向分支
-    branch_id=Column(Integer,ForeignKey('repobranches.id',ondelete='CASCADE'))
+    branch_id=Column(Integer,ForeignKey('branches.id',ondelete='CASCADE'))
     #branch
 
     #本次提交的hash
-    currnet_hash=Column(String(64),nullable=False)
+    currnet_hash=Column(String(64),index=True)
     #前一次提交的hash
-    before_hash=Column(String(64),nullable=False)
+    before_hash=Column(String(64))
 
     additions=Column(BigInteger,default=-1)
     deletions=Column(BigInteger,default=-1)
 
-    push_at=Column(DateTime,nullable=False,default=datetime.datetime.now())
 
-    commits=relationship("Commit",backref="pushinfo",cascade='all,delete-orphan')
+    push_at=Column(DateTime,nullable=False,default=datetime.datetime.now(),index=True)
+
+    commits=relationship("Commit",backref="pushrecord",cascade='all,delete-orphan')
 
     def __repr__(self):
-        return f"[{self.operator.name}]-P->({self.branch.name})({self.push_at.strftime('%Y-%m-%d %H:%M:%S')})"
-
+        return f"[{self.submitter.name}]-P->({self.branch.name})({self.push_at.strftime('%Y-%m-%d %H:%M:%S')})"
 #push commit list
 class Commit(Base):
     __tablename__='commits'
     id=Column(Integer,primary_key=True,index=True)
 
-    push_id=Column(Integer,ForeignKey('pushinfos.id',ondelete='CASCADE'))
-    #pushinfo
+    push_id=Column(Integer,ForeignKey('pushrecords.id',ondelete='CASCADE'))
+    #pushrecord
 
-    remoteid=Column(String(128),nullable=False)
+    remoteid=Column(String(64),nullable=False,index=True)
+
     message=Column(String)
+
+    url=Column(String(256))
 
     commit_at=Column(DateTime)
 
-# class MergeInfo(Base):
-#     __tablename__='mergeinfos'
-#     id=Column(Integer,primary_key=True,index=True)
-#     repo_id=Column(Integer,ForeignKey('repositories.id',ondelete='CASCADE'))
-#     #repo
+class MergeRecord(Base):
+    __tablename__='mergerecords'
+    id=Column(Integer,primary_key=True,index=True)
+
+    remoteid=Column(String(64),nullable=False,unique=True)
+
+    snap_source_branch_name=Column(String(256))
+    snap_source_repo_namespace=Column(String(256),)
+    snap_sub_name=Column(String(256),index=True)
+
+    sub_id=Column(Integer,ForeignKey('submitters.id',ondelete='CASCADE'))
+    #submitter
+    target_branch_id=Column(Integer,ForeignKey('branches.id',ondelete='CASCADE'))
+    #branch
+    happened_repo_id=Column(Integer,ForeignKey('repositories.id',ondelete='CASCADE'))
+    #repo
+
+    title=Column(String(256))
+
+    current_merge_state=Column(String(64))
+    current_state=Column(String(64))
+
+    create_at=Column(DateTime,index=True)
+    update_at=Column(DateTime)
+
+    merges=relationship("MergeLog",backref="merge",cascade='all,delete-orphan')
+class MergeLog(Base):
+    __tablename__='mergelogs'
+    id=Column(Integer,primary_key=True,index=True)
+
+    merge_id=Column(Integer,ForeignKey('mergerecords.id',ondelete='CASCADE'))
+    #merge
+
+    current_merge_state=Column(String(64))
+    current_state=Column(String(64))
+
+    action=Column(String(32),index=True)
+    extension_action=Column(String(32))
+
+    record_at=Column(DateTime,index=True)
+
+    __table_args__ = (Index('action_at_index', "action", "record_at"), )
+
+class NoticeReceiver(Base):
+    __tablename__='noticereceivers'
+    id=Column(Integer,primary_key=True,index=True)
+
+    name=Column(String(256),default='UndefinedReceiver',nullable=False,index=True)
+    
+    url=Column(String(256))
+
+    stats_send_at=Column(String(64))
+
+    token=Column(String(256))
+
+    watchingrepos=relationship('Repository',secondary='repos_recvs')
+
+class RepoRecv(Base):
+    __tablename__='repos_recvs'
+    id=Column(Integer,primary_key=True,index=True)
+
+    repo_id=Column(Integer,ForeignKey('repositories.id',ondelete='CASCADE'))
+    recv_id=Column(Integer,ForeignKey('noticereceivers.id',ondelete='CASCADE'))
+
+    activate=Column(Boolean,default=True)
+
+class RepoSub(Base):
+    __tablename__='repos_subs'
+    id=Column(Integer,primary_key=True,index=True)
+
+    repo_id=Column(Integer,ForeignKey('repositories.id',ondelete='CASCADE'))
+    sub_id=Column(Integer,ForeignKey('submitters.id',ondelete='CASCADE'))

@@ -10,8 +10,13 @@ from app.utils import responsetemplate
 
 from utils import ConfigData
 from utils.encrypt import encryption
+from utils.logger import get_logger
 
 router=APIRouter()
+
+logger=get_logger(__name__)
+
+
 
 @router.get("/",response_class=HTMLResponse,deprecated=False)
 async def index(request:Request):
