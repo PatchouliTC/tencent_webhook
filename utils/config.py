@@ -15,12 +15,18 @@ class AppSettings(BaseSettings):
     IDENTITYPWD:str=123456
     ACCESSTOKEN:str=None
     SENDTIME:str=None
-    TEMPLATESTR:str="""
+    TEMPLATESTATSTR:str="""
 -----PUSH STAT( %s )-----
 ```
 %s
 ```"""
+    TEMPLATEPUSHSTR:str="""# %s 提交（%s）
 
+  WHAT'S NEW:
+
+  ```
+  %s
+  ```"""
 
     #auto add unknown repo?
     AUTOADDUNKNOWNREPO:bool=False

@@ -24,8 +24,8 @@ logger=init_logging(logname=__name__,level=CD.APP_CONFIG.LOG_LEVEL,filepath=os.p
 scheduler=BackgroundScheduler()
 
 from .service.planscheduler import SendPlanScheduler
-from .helper import send_msg_to_robot
-planscheduler=SendPlanScheduler(send_msg_to_robot)
+from .helper import send_stat_msg_to_robot
+planscheduler=SendPlanScheduler(send_stat_msg_to_robot)
 
 #生产环境注销API接口文档
 if CD.APP_CONFIG.DEVELOP:
@@ -73,8 +73,7 @@ def create_server():
 @app.on_event('startup')
 async def startup_event():
     scheduler.start()
-    from .helper import send_msg_to_robot
-    send_msg_to_robot(0)
+
 
 def global_exception_handler(app:FastAPI)->None:
 

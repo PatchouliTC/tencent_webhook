@@ -5,8 +5,8 @@ from app.models.db.models import *
 from fastapi_sqlalchemy import db
 from app.service import dto
 
-def send_msg_to_robot(receiverid:int):
-    msgtemplate=ConfigData.APP_CONFIG.TEMPLATESTR
+def send_stat_msg_to_robot(receiverid:int):
+    msgtemplate=ConfigData.APP_CONFIG.TEMPLATESTATSTR
     if ConfigData.APP_CONFIG.DEVELOP:
         targeturl=ConfigData.APP_CONFIG.ROBOTHOOKURL
         
@@ -50,25 +50,31 @@ def send_msg_to_robot(receiverid:int):
 
 
 
-# def send_msg_to_robot(url,msg,timeout:int=5):
-#     """发送消息给目标机器人
+def send_push_msg_to_robot(receiverid:int,subname,reponame,msg):
 
-#     Args:
-#         msg (str): 消息内容
-#         timeout (int, optional): 连接超时时间. Defaults to 5.
+    msgtemplate=ConfigData.APP_CONFIG.TEMPLATEPUSHSTR
+    if ConfigData.APP_CONFIG.DEVELOP:
+        targeturl=ConfigData.APP_CONFIG.ROBOTHOOKURL
+        
+    else:
+        receiver=db.session.query(NoticeReceiver).filter(NoticeReceiver.id==receiverid).first()
+        if not receiver or not receiver.url:
+            return False
 
-#     Returns:
-#         bool: 发送是否成功
-#     """
-#     if msg and ConfigData.APP_CONFIG.ROBOTHOOKURL:
-#         sendmsg={'msgtype': 'text', 'text': {'content': msg}}
-#         try:
-#             req=requests.post(url,json=sendmsg,timeout=timeout)
-#             logger.debug(f"state:{req.status_code},info:{req.reason},data:{req.text}")
-#             return True
-#         except Exception as e:
-#             logger.error(f"post msg to robot failed,{str(e)}")
-#             return False
+        targeturl=receiver.url
+
+
+    if msg and ConfigData.APP_CONFIG.ROBOTHOOKURL:
+        sendmsg={'msgtype': 'text', 'text': {'content': msgtemplate % (subname,reponame,msg)}}
+        logger.debug(f"send push msg{sendmsg}")
+        #print(msgtemplate % (subname,reponame,msg))
+        try:
+            req=requests.post(targeturl,json=sendmsg,timeout=3)
+            logger.debug(f"state:{req.status_code},info:{req.reason},data:{req.text}")
+            return True
+        except Exception as e:
+            logger.error(f"post msg to robot failed,{str(e)}")
+            return False
 
 
 

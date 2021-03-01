@@ -5,12 +5,12 @@ from typing import Dict,Any, Union
 from fastapi import APIRouter,Request,Header
  
 from app.const import robotmsgtemplate
-from app.helper import send_msg_to_robot
 from app.utils import respUtil,verifyUtil
 
 from app.models.webhook import *
 from app.models.db import models as dbtable
 
+from app.helper import send_push_msg_to_robot
 from app.service import dto,txgitcall
 
 from utils import ConfigData
@@ -77,6 +77,10 @@ async def webhook_data_receive(request:Request,payload:Union[PushData,MergeData]
             _pushrecord.additions=additions
             _pushrecord.deletions=deletions
             db.session.commit()
+
+        comments_message = "\n".join([str(commit) for commit in payload.commits])
+        send_push_msg_to_robot(-1,payload.user_name,payload.repository.name,comments_message)
+
         return respUtil.resp_200()
 
     #Add Merge Data
