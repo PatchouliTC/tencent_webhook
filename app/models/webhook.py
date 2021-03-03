@@ -43,7 +43,8 @@ class Commit(BaseModel):
     url:str
     author:Author
     commit_at:datetime=Field(..., alias="timestamp")
-
+    def __str__(self):
+        return f"{self.message}\n({self.url})\n"
 class MergeInfo(BaseModel):
     id:int
 

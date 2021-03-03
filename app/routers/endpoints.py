@@ -5,7 +5,6 @@ from fastapi.responses import HTMLResponse,FileResponse
 from app import templates,logger 
 from app.models.backend import HookItem,CommitsData
 from app.const import robotmsgtemplate
-from app.helper import send_msg_to_robot
 from app.utils import respUtil
 
 from utils import ConfigData

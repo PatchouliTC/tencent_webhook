@@ -8,3 +8,5 @@ requests==2.25.1
 fastapi==0.63.0
 python-dotenv
 Jinja2
+aiofiles
+APScheduler

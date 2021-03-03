@@ -1,15 +1,16 @@
+from logging import info
 import re
 
 from typing import Dict,Any, Union
 from fastapi import APIRouter,Request,Header
  
 from app.const import robotmsgtemplate
-from app.helper import send_msg_to_robot
 from app.utils import respUtil,verifyUtil
 
 from app.models.webhook import *
 from app.models.db import models as dbtable
 
+from app.helper import send_push_msg_to_robot
 from app.service import dto,txgitcall
 
 from utils import ConfigData
@@ -63,7 +64,9 @@ async def webhook_data_receive(request:Request,payload:Union[PushData,MergeData]
     if payload.object_kind==HookKind.Push:
         _pushrecord=dto.add_pushrecord_with_commits(payload.dict(),_submitter,_branch)
 
-        diffdata=txgitcall.get_diff_info_reqest(_repoid,_pushrecord.before_hash,_pushrecord.current_hash,_localrepo.accesstoken)
+        accesstoken=_localrepo.accesstoken if not ConfigData.APP_CONFIG.DEVELOP else ConfigData.APP_CONFIG.ACCESSTOKEN
+
+        diffdata,info=txgitcall.get_diff_info_reqest(_repoid,_pushrecord.before_hash,_pushrecord.current_hash,accesstoken)
         if diffdata:
             additions=0
             deletions=0
@@ -74,13 +77,18 @@ async def webhook_data_receive(request:Request,payload:Union[PushData,MergeData]
             _pushrecord.additions=additions
             _pushrecord.deletions=deletions
             db.session.commit()
+
+        comments_message = "\n".join([str(commit) for commit in payload.commits])
+        send_push_msg_to_robot(-1,payload.user_name,payload.repository.name,comments_message)
+
         return respUtil.resp_200()
 
     #Add Merge Data
     elif payload.object_kind==HookKind.Merge:
+
         pass
 
-    return respUtil.resp_404(payload="No such repo record")
+    return respUtil.resp_200(payload="Finish")
 
 
 

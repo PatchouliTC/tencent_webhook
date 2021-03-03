@@ -5,9 +5,12 @@ from fastapi_sqlalchemy import DBSessionMiddleware
 from fastapi_sqlalchemy import db
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
 import uvicorn
 
-from utils import ConfigData as CD, config
+from utils import ConfigData as CD
 from utils.logger import init_logging
 
 from app.utils import respUtil
@@ -18,9 +21,16 @@ SERVER_ROOT_PATH:str=os.path.abspath(os.path.dirname(__file__))
 #定义日志组件-非uvicorn
 logger=init_logging(logname=__name__,level=CD.APP_CONFIG.LOG_LEVEL,filepath=os.path.join(CD.APP_CONFIG.LOG_FILE_ROOT_PATH,__name__,'log.log'))
 
+scheduler=BackgroundScheduler()
+
+from .service.planscheduler import SendPlanScheduler
+from .helper import send_stat_msg_to_robot
+planscheduler=SendPlanScheduler(send_stat_msg_to_robot)
+
 #生产环境注销API接口文档
 if CD.APP_CONFIG.DEVELOP:
     app=FastAPI()
+    planscheduler.addplan(0,CD.APP_CONFIG.SENDTIME)
 else:
     app=FastAPI(docs_url=None,redoc_url=None)
 
@@ -42,7 +52,7 @@ def start_server():
 #创建APP，相关围绕APP关联内容处理
 def create_server():
 
-    app.add_middleware(DBSessionMiddleware,db_url=CD.APP_CONFIG.SQL_URL)
+    app.add_middleware(DBSessionMiddleware,db_url=CD.APP_CONFIG.SQL_URL,engine_args={'echo':False})
     from .routers import endpoints
     from .routers import hookend
 
@@ -55,15 +65,14 @@ def create_server():
         tags=['WebHookCallbacks'],
         responses={404: {'info':'No such webhook endpoint'}}
     )
+
+    
+
     return app
 
 @app.on_event('startup')
 async def startup_event():
-    pass
-    # from .models.db.models import Repository
-    # repos=db.session.query(Repository).all()
-    # for r in repos:
-    #     print(r)
+    scheduler.start()
 
 
 def global_exception_handler(app:FastAPI)->None:
@@ -77,4 +86,4 @@ def global_exception_handler(app:FastAPI)->None:
             exc (Exception): 异常信息
         """
         logger.error(f"Exception happened at {request.method} on {request.url}\nheaders:{request.headers}\nException info:{str(exc)}")
-        return responsetemplate.resp_500()
+        return respUtil.resp_500()

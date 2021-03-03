@@ -14,7 +14,7 @@
                 "-n",
                 "-d",
                 "-c AppSettings.dev.env",
-                "-p 5006"
+                ""
             ]
         },
         {
