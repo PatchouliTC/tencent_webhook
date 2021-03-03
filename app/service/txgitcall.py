@@ -8,6 +8,8 @@ diff_detail_url=f"{tencent_git_url}/api/v3/projects/:id/repository/compare"
 #获取分支列表
 get_branches_url=f"{tencent_git_url}/api/v3/projects/:id/repository/branches"
 
+get_repo_events=f"{tencent_git_url}/api/v3/projects/:id/events"
+
 def get_diff_info_reqest(repoid:int,old:str,new:str,accesstoken:str,timeout:int=3):
     if not accesstoken:
         return None,"No accesstoken"
